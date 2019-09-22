@@ -99,7 +99,7 @@ WEND
 
 '--- ヘルプの文章
 @TEXT_HELP
-DATA "Ent:決定"
+DATA "Ent:決定/ファイルを読み込む"
 DATA "Esc:キャンセル"
 DATA ""
 DATA "C  :コピー"
