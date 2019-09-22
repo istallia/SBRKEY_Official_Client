@@ -24,7 +24,8 @@ VAR BACKUP_DIR$ = CHDIR()
 VAR SLOT%       = 0
 LOCATE 0,0:BACKTRACE
 SLOT% = CHKCHR(0,0) - 48
-IF SLOT% == 4 THEN CHDIR DIRNAME$(PRGNAME$(0))
+IF SLOT%   == 4   THEN CHDIR DIRNAME$(PRGNAME$(0))
+IF CHDIR() == "/" THEN CHDIR "/PROJECT"
 
 '--- 初期化
 ACLS
@@ -40,7 +41,13 @@ COLOR #WHITE, 0
 
 '--- ファイラー関連の変数
 VAR CTRL_TEXT$ = "SPACE:ファイルメニュー D:ダウンロードメニュー H:ヘルプ Q:終了"
+VAR CURSOR% = 1
+VAR OFFSET% = 0
 DIM FLIST$[0]
+
+'--- ファイルリストの取得とカーソル位置合わせ
+RELOAD_FILELIST FLIST$, "NAME"
+IF SLOT% == 4 THEN CURSOR% = FIND(FLIST$,BASENAME$(PRGNAME$(0)))
 
 '--- タイトルバーとファイルリストの初期描画
 COLOR #BLACK, #AQUA
@@ -50,14 +57,21 @@ LOCATE 0, 0
 PRINT TITLE$;
 LOCATE 80-LEN(CTRL_TEXT$), 0
 PRINT CTRL_TEXT$;
-RELOAD_FILELIST FLIST$, "NAME"
-DRAW_FILELIST FLIST$
+DRAW_FILELIST FLIST$, CURSOR%
 
 '--- メインループ
 WHILE #TRUE
  'キー入力を取得
  VAR C$ = INKEY$()
  C$     = UPL$(C$)
+ '上下キーでカーソルを移動
+ IF C$ == CHR$(30) && CURSOR% > 0 THEN
+  INC CURSOR%
+  DRAW_FILELIST FLIST$
+ ELSEIF C$ == CHR$(31) && CURSOR% < LEN(FLIST$)-1 THEN
+  DEC CURSOR%
+  DRAW_FILELIST FLIST$
+ ENDIF
  'H:ヘルプ → その他の操作方法について表示
  IF C$ == "H" THEN
   DRAW_WINDOW 20, 15, 40, 30
@@ -113,6 +127,8 @@ DEF RELOAD_FILELIST LIST$, SORT_RULE$
    IF LIST$[I%][0] == "+" THEN
     LIST$[I%] = RIGHT$(LIST[I%],LEN(LIST$)-1)
     LIST$[I%] = "[" + LIST$[I%] + "]"
+   ELSE
+    LIST$[I%] = RIGHT$(LIST[I%],LEN(LIST$)-1)
    ENDIF
   NEXT
  ENDIF
@@ -212,6 +228,15 @@ DEF CHKFILENAME$(FN$)
   IF INSTR(CHKTEXT$,CHAR$) > -1 THEN OUTPUT$ = OUTPUT$ + CHAR$
  WEND
  RETURN OUTPUT$
+END
+
+'--- 文字列配列内で指定された要素を検索する(返り値は添え字)
+DEF FIND(ARRAY$,TARGET$)
+ VAR I%
+ FOR I% = 0 TO LEN(ARRAY$)-1
+  IF ARRAY$[I%] == TARGET$ THEN BREAK
+ NEXT
+ RETURN I%
 END
 
 '--- キー入力を同期的に取得する
