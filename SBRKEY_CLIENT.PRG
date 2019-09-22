@@ -17,7 +17,7 @@ OPTION STRICT
 '--- 汎用変数
 VAR TITLE$ = "SBRKEY OFFICIAL CLIENT v0.1"
 VAR I%, J%
-VAR FNAME$, DNAME$
+VAR FNAME$, DNAME$, CONTENT$
 
 '--- 実行スロットの確認
 VAR BACKUP_DIR$ = CHDIR()
@@ -60,7 +60,18 @@ WHILE #TRUE
  C$     = UPL$(C$)
  'H:ヘルプ → その他の操作方法について表示
  IF C$ == "H" THEN
-  
+  DRAW_WINDOW 20, 15, 40, 30
+  RESTORE @TEXT_HELP
+  I% = 0
+  READ CONTENT$
+  WHILE CONTENT$ != "END"
+   LOCATE 21, 16+I%
+   PRINT CONTENT$
+   READ CONTENT$
+   INC I%
+  WEND
+  C$ = WAIT_INKEY$()
+  C$ = ""
  ENDIF
  'Q:終了 → 画面をリフレッシュしてからツールを終了
  IF C$ == "Q" || C$ == CHR$(27) THEN
@@ -74,7 +85,19 @@ WEND
 
 '--- ヘルプの文章
 @TEXT_HELP
+DATA "Ent:決定"
+DATA "Esc:キャンセル"
 DATA ""
+DATA "C  :コピー"
+DATA "X  :切り取り"
+DATA "V  :貼り付け"
+DATA ""
+DATA "A  :ステージ領域へファイルを追加(git add)"
+DATA "O  :gitへコミットする(git commit)"
+DATA "P  :リモートリポジトリへ送信(git push)"
+DATA ""
+DATA "いずれかのキーを押してヘルプを閉じます"
+DATA "END"
 
 '--- ファイルリストを更新する命令
 DEF RELOAD_FILELIST LIST$, SORT_RULE$
@@ -137,6 +160,23 @@ END
 'いろいろなところで使用する自作命令                           
 '--------------------------------------------
 
+'--- コンソール上にウィンドウ枠を描画(指定座標や幅は表示エリア)
+DEF DRAW_WINDOW X%, Y%, W%, H%
+ '座標チェック(幅と高さはスルー)
+ IF X% < 1 || Y% < 1 THEN RETURN
+ 'ローカル変数
+ VAR I%
+ '描画
+ COLOR #WHITE, #BLACK
+ LOCATE X%-1, Y%-1
+ PRINT  "┌" + "─"*W% + "┐"
+ FOR I% = Y% TO Y%-1+H%
+  LOCATE X%-1, I%
+  PRINT "│" + " "*W% + "│"
+ NEXT
+ PRINT  "└" + "─"*W% + "┘"
+END
+
 '--- 指定されたファイルをカレントディレクトリにコピーする
 DEF CP FP$
  VAR FN$  = BASENAME$(FP$)
@@ -172,6 +212,17 @@ DEF CHKFILENAME$(FN$)
   IF INSTR(CHKTEXT$,CHAR$) > -1 THEN OUTPUT$ = OUTPUT$ + CHAR$
  WEND
  RETURN OUTPUT$
+END
+
+'--- キー入力を同期的に取得する
+DEF WAIT_INKEY$()
+ 'キー入力待ちループ
+ VAR IN$ = INKEY$()
+ WHILE IN$ == ""
+  VSYNC
+  IN$ = INKEY$()
+ WEND
+ RETURN IN$
 END
 
 '--- ファイルパスからファイル名だけを抜き出す関数
