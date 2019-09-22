@@ -39,11 +39,17 @@ COLOR #WHITE, 0
 '--------------------------------------------
 
 '--- ファイラー関連の変数
+VAR CTRL_TEXT$ = "SPACE:ファイルメニュー H:ヘルプ Q:終了"
 DIM FLIST$[0]
 
 '--- タイトルバーとファイルリストの初期描画
-COLOR #BLACK, #WHITE
-PRINT " "*80
+COLOR #BLACK, #AQUA
+LOCATE 0, 0
+PRINT " "*80;
+LOCATE 0, 0
+PRINT TITLE$;
+LOCATE 80-LEN(CTRL_TEXT$), 0
+PRINT CTRL_TEXT$;
 RELOAD_FILELIST FLIST$, "NAME"
 DRAW_FILELIST FLIST$
 
