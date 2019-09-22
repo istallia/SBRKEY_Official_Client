@@ -39,7 +39,7 @@ COLOR #WHITE, 0
 '--------------------------------------------
 
 '--- ファイラー関連の変数
-VAR CTRL_TEXT$ = "SPACE:ファイルメニュー H:ヘルプ Q:終了"
+VAR CTRL_TEXT$ = "SPACE:ファイルメニュー D:ダウンロードメニュー H:ヘルプ Q:終了"
 DIM FLIST$[0]
 
 '--- タイトルバーとファイルリストの初期描画
@@ -52,6 +52,29 @@ LOCATE 80-LEN(CTRL_TEXT$), 0
 PRINT CTRL_TEXT$;
 RELOAD_FILELIST FLIST$, "NAME"
 DRAW_FILELIST FLIST$
+
+'--- メインループ
+WHILE #TRUE
+ 'キー入力を取得
+ VAR C$ = INKEY$()
+ C$     = UPL$(C$)
+ 'H:ヘルプ → その他の操作方法について表示
+ IF C$ == "H" THEN
+  
+ ENDIF
+ 'Q:終了 → 画面をリフレッシュしてからツールを終了
+ IF C$ == "Q" || C$ == CHR$(27) THEN
+  COLOR #WHITE, 0
+  CLS
+  CHDIR BACKUP_DIR$
+ ENDIF
+ '時間待ち
+ VSYNC
+WEND
+
+'--- ヘルプの文章
+@TEXT_HELP
+DATA ""
 
 '--- ファイルリストを更新する命令
 DEF RELOAD_FILELIST LIST$, SORT_RULE$
