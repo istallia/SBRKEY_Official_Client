@@ -81,7 +81,7 @@ WHILE #TRUE
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
  ENDIF
  'Enterでディレクトリを移動したりファイルを読み込んだりする
- IF C$ == CHR$(13) THEN
+ IF C$ == CHR$(13) || C$ == "Z" THEN
   IF RIGHT$(FLIST$[CURSOR%],1) == "]" THEN
    'ディレクトリの場合
    DNAME$ = MID$(FLIST$[CURSOR%],1,LEN(FLIST$[CURSOR%])-2)
@@ -456,11 +456,11 @@ DEF CHOOSE(X%, Y%, NUM%)
    LOCATE X%, Y%+J%:PRINT "→";
   ENDIF
   '決定
-  IF C$ == CHR$(13) THEN
+  IF C$ == CHR$(13) || C$ == "Z" THEN
    RETURN J%
   ENDIF
   'キャンセル
-  IF C$ == "Q" || C$ == CHR$(27) THEN
+  IF C$ == "Q" || C$ == "X" || C$ == CHR$(27) THEN
    RETURN -1
   ENDIF
   '時間待ち
