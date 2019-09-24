@@ -86,6 +86,7 @@ WHILE #TRUE
   WEND
   C$ = WAIT_INKEY$()
   C$ = ""
+  DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
  ENDIF
  'Q:終了 → 画面をリフレッシュしてからツールを終了
  IF C$ == "Q" || C$ == CHR$(27) THEN
@@ -194,6 +195,7 @@ DEF DRAW_WINDOW X%, Y%, W%, H%
   LOCATE X%-1, I%
   PRINT "│" + " "*W% + "│"
  NEXT
+ LOCATE X%-1, Y%+H%
  PRINT  "└" + "─"*W% + "┘"
 END
 
