@@ -167,7 +167,7 @@ WHILE #TRUE
    LOCATE 15, 12:LINPUT CONTENT$
    DMP$ = SYSTEM$("sudo git commit -m "+CHR$(34)+CONTENT$+CHR$(34))
    DRAW_WINDOW 34, 16, 12, 1
-   LOCATE 25, 16:PRINT "コミットが完了しました。"
+   LOCATE 34, 16:PRINT "コミットが完了しました。"
    C$ = WAIT_INKEY$()
    C$ = ""
   ELSE
@@ -184,9 +184,11 @@ WHILE #TRUE
  'P:リモートリポジトリへ送信(git push)
  IF C$ == "P" THEN
   IF CHKGIT() THEN
+   DRAW_WINDOW 36, 11, 8, 1
+   LOCATE 36, 11:PRINT "送信中です..."
    DMP$ = SYSTEM$("sudo git push -u")
-   DRAW_WINDOW 27, 11, 25, 1
-   LOCATE 25, 11:PRINT "ローカルの作業をリモートリポジトリに反映しました。"
+   DRAW_WINDOW 27, 12, 25, 1
+   LOCATE 27, 12:PRINT "ローカルの作業をリモートリポジトリに反映しました。"
    C$ = WAIT_INKEY$()
    C$ = ""
   ELSE
