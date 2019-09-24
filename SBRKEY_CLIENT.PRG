@@ -131,7 +131,9 @@ WHILE #TRUE
   ELSE
    SPATH$ = CHDIR()
    IF SPATH$ == "/" THEN SPATH$ = ""
-   PUSH SELECT$, FLIST$[CURSOR%]
+   FNAME$ = FLIST$[CURSOR%]
+   IF RIGHT$(FNAME$,1) == "]" THEN FNAME$ = MID$(FNAME$,1,LEN(FNAME$)-2)
+   PUSH SELECT$, FNAME$
   ENDIF
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
  ENDIF
@@ -228,7 +230,9 @@ WHILE #TRUE
     WHILE LEN(FPATH$) > 0
      DMP$ = POP(FPATH$)
     WEND
-    PUSH FPATH$, FLIST$[CURSOR%]
+    FNAME$ = FLIST$[CURSOR%]
+    IF RIGHT$(FNAME$,1) == "]" THEN FNAME$ = MID$(FNAME$,1,LEN(FNAME$)-2)
+    PUSH FPATH$, FNAME$
    ENDIF
    CMODE% = (J% == 0)
   ELSEIF J% == 2 && LEN(FPATH$) > 0 THEN
@@ -255,6 +259,27 @@ WHILE #TRUE
    IF J% > -1 THEN CURSOR% = J%
    J% = FIND(FLIST$,"["+FNAME$+"]")
    IF J% > -1 THEN CURSOR% = J%
+  ELSEIF J% == 4 THEN
+   '削除
+   DRAW_WINDOW 35, 15, 10, 2
+   LOCATE 35, 15:PRINT "本当に削除しますか?"
+   LOCATE 35, 16:PRINT "  [Y/N]   "
+   C$ = UPL$(WAIT_INKEY$())
+   IF C$ == "Y" THEN
+    IF LEN(SELECT$) == 0 THEN
+     FNAME$ = FLIST$[CURSOR%]
+     IF RIGHT$(FNAME$,1) == "]" THEN FNAME$ = MID$(FNAME$,1,LEN(FNAME$)-2)
+     DMP$ = SYSTEM$("sudo rm -rf "+FNAME$)
+    ELSE
+     CONTENT$ = ""
+     FOR I% = 0 TO LEN(SELECT$)-1
+      CONTENT$ = CONTENT$ + " " + SELECT$[I%]
+     NEXT
+     DMP$ = SYSTEM$("sudo rm -rf"+CONTENT$)
+    ENDIF
+   ENDIF
+   RELOAD_FILELIST FLIST$, "NAME"
+   IF CURSOR% > LEN(FLIST$)-1 THEN CURSOR% = LEN(FLIST$) - 1
   ELSEIF J% == 6 THEN
    'ファイルパスのコピー
    FNAME$ = FLIST$[CURSOR%]
