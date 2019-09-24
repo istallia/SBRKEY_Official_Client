@@ -20,6 +20,12 @@ VAR I%, J%, CX%, CY%
 VAR FNAME$, DNAME$, ENAME$, CONTENT$
 VAR DMP$
 
+'--- クリップボードとコピー用の変数
+DIM SELECT$[0]
+VAR DPATH$
+DIM FPATH$[0]
+DIM CMODE% = #TRUE
+
 '--- 実行スロットの確認
 VAR BACKUP_DIR$ = CHDIR()
 VAR SLOT%       = 0
