@@ -87,7 +87,7 @@ WHILE #TRUE
   ELSE
    FNAME$ = FLIST$[CURSOR%]
    ENAME$ = UPL$(EXTNAME$(FNAME$))
-   IF FIND_BY_LIST("@EXT_TXT",ENAME$) THEN
+   IF CHKEXT("TXT",ENAME$) > -1 THEN
     'テキストファイルの場合
     CX% = LEN(FNAME$) + 3
     CY% = MIN(37,CURSOR%-OFFSET%+4)
@@ -101,39 +101,12 @@ WHILE #TRUE
     LOCATE CX%+1, CY%+5:PRINT "クリップボード";
     LOCATE CX%  , CY%+1:PRINT "→";
     C$ = ""
-    J% = 0
-    WHILE #TRUE
-     'キー取得
-     C$ = UPL$(INKEY$())
-     '上下
-     IF C$ == CHR$(30) && J% > 0 THEN
-      DEC J%
-      FOR I% = 0 TO 4
-       LOCATE CX%, CY%+I%+1:PRINT " ";
-      NEXT
-      LOCATE CX%, CY%+J%+1:PRINT "→";
-     ELSEIF C$ == CHR$(31) && J% < 4 THEN
-      INC J%
-      FOR I% = 0 TO 4
-       LOCATE CX%, CY%+I%+1:PRINT " ";
-      NEXT
-      LOCATE CX%, CY%+J%+1:PRINT "→";
-     ENDIF
-     '決定
-     IF C$ == CHR$(13) THEN
-      IF J% < 4  THEN LOAD "PRG"+STR$(J%)+":"+FNAME$
-      IF J% == 4 THEN CLIPBOARD LOAD("TXT:"+FNAME$)
-      VSYNC
-      BREAK
-     ENDIF
-     'キャンセル
-     IF C$ == "Q" || C$ == CHR$(27) THEN
-      VSYNC
-      BREAK
-     ENDIF
-     '時間待ち
-     VSYNC
-    WEND
+    J% = CHOOSE(CX%,CY%+1,5)
+    IF BETWEEN(J%,0,3) THEN
+     LOAD "PRG"+STR$(J%)+":"+FNAME$
+    ELSEIF J% == 4 THEN
+     CLIPBOARD LOAD("TXT:"+FNAME$)
+    ENDIF
     C$ = ""
     J% = 0
     DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
@@ -335,6 +308,39 @@ DEF DRAW_WINDOW X%, Y%, W%, H%
  PRINT  "└" + "─"*W% + "┘"
 END
 
+'--- 小さな選択肢のカーソルを一行で済ませるための関数
+DEF CHOOSE(X%, Y%, NUM%)
+ VAR I%, J% = 0
+ WHILE #TRUE
+  'キー取得
+  VAR C$ = UPL$(INKEY$())
+  '上下
+  IF C$ == CHR$(30) && J% > 0 THEN
+   DEC J%
+   FOR I% = 0 TO 4
+    LOCATE X%, Y%+I%:PRINT " ";
+   NEXT
+   LOCATE X%, Y%+J%:PRINT "→";
+  ELSEIF C$ == CHR$(31) && J% < NUM%-1 THEN
+   INC J%
+   FOR I% = 0 TO 4
+    LOCATE X%, Y%+I%:PRINT " ";
+   NEXT
+   LOCATE X%, Y%+J%:PRINT "→";
+  ENDIF
+  '決定
+  IF C$ == CHR$(13) THEN
+   RETURN J%
+  ENDIF
+  'キャンセル
+  IF C$ == "Q" || C$ == CHR$(27) THEN
+   RETURN -1
+  ENDIF
+  '時間待ち
+  VSYNC
+ WEND
+END
+
 '--- 指定されたファイルをカレントディレクトリにコピーする
 DEF CP FP$
  VAR FN$  = BASENAME$(FP$)
@@ -384,18 +390,18 @@ DEF FIND(ARRAY$,TARGET$)
  RETURN RES%
 END
 
-'--- 文字列配列内で指定された要素をDATAで定義されたリストから検索する
-DEF FIND_BY_LIST(LABEL$,TARGET$)
+'--- 定義リストの拡張子から指定拡張子を検索する
+DEF CHKEXT(LABEL$,TARGET$)
  VAR ELEMENT$
  DIM ELEMENTS$[0]
- RESTORE LABEL$
+ RESTORE "@"+LABEL$
  READ ELEMENT$
  WHILE ELEMENT$ != ""
   PUSH ELEMENTS$, ELEMENT$
   READ ELEMENT$
  WEND
  RETURN FIND(ELEMENTS$,TARGET$)
- @EXT_TXT
+ @TXT
  DATA "PRG"
  DATA "DATA"
  DATA "TXT"
