@@ -98,7 +98,7 @@ WHILE #TRUE
    ENAME$ = UPL$(EXTNAME$(FNAME$))
    IF CHKEXT("TXT",ENAME$) > -1 THEN
     'テキストファイルの場合
-    CX% = LEN(FNAME$) + 3
+    CX% = LEN(FNAME$) + 4
     CY% = MIN(37,CURSOR%-OFFSET%+4)
     DRAW_WINDOW CX%, CY%, 10, 6
     LOCATE CX%, CY%
@@ -108,7 +108,6 @@ WHILE #TRUE
     LOCATE CX%+1, CY%+3:PRINT "PRG2";
     LOCATE CX%+1, CY%+4:PRINT "PRG3";
     LOCATE CX%+1, CY%+5:PRINT "クリップボード";
-    LOCATE CX%  , CY%+1:PRINT "→";
     C$ = ""
     J% = CHOOSE(CX%,CY%+1,5)
     IF BETWEEN(J%,0,3) THEN
@@ -200,6 +199,21 @@ WHILE #TRUE
    C$ = WAIT_INKEY$()
    C$ = ""
   ENDIF
+  DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+ ENDIF
+ 'SPACE:ファイルメニュー → ファイルやディレクトリに関する操作を選択肢から選んで実行
+ IF C$ == " " THEN
+  CX% = LEN(FLIST$[CURSOR%]) + 4
+  CY% = MIN(37,CURSOR%-OFFSET%+4)
+  DRAW_WINDOW CX%, CY%, 11, 7
+  LOCATE CX%+1, CY%  :PRINT "コピー";
+  LOCATE CX%+1, CY%+1:PRINT "切り取り";
+  LOCATE CX%+1, CY%+2:PRINT "貼り付け";
+  LOCATE CX%+1, CY%+3:PRINT "名前の変更";
+  LOCATE CX%+1, CY%+4:PRINT "git add";
+  LOCATE CX%+1, CY%+5:PRINT "ファイルパスのコピー";
+  LOCATE CX%+1, CY%+6:PRINT "圧縮／解凍";
+  J% = CHOOSE(CX%,CY%,7)
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
  ENDIF
  'H:ヘルプ → その他の操作方法について表示
@@ -344,19 +358,20 @@ END
 '--- 小さな選択肢のカーソルを一行で済ませるための関数
 DEF CHOOSE(X%, Y%, NUM%)
  VAR I%, J% = 0
+ LOCATE X%, Y%:PRINT "→";
  WHILE #TRUE
   'キー取得
   VAR C$ = UPL$(INKEY$())
   '上下
   IF C$ == CHR$(30) && J% > 0 THEN
    DEC J%
-   FOR I% = 0 TO 4
+   FOR I% = 0 TO NUM%-1
     LOCATE X%, Y%+I%:PRINT " ";
    NEXT
    LOCATE X%, Y%+J%:PRINT "→";
   ELSEIF C$ == CHR$(31) && J% < NUM%-1 THEN
    INC J%
-   FOR I% = 0 TO 4
+   FOR I% = 0 TO NUM%-1
     LOCATE X%, Y%+I%:PRINT " ";
    NEXT
    LOCATE X%, Y%+J%:PRINT "→";
