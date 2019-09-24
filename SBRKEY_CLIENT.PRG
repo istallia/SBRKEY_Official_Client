@@ -18,6 +18,7 @@ OPTION STRICT
 VAR TITLE$ = "SBRKEY OFFICIAL CLIENT v0.1"
 VAR I%, J%, CX%, CY%
 VAR FNAME$, DNAME$, ENAME$, CONTENT$
+VAR DMP$
 
 '--- 実行スロットの確認
 VAR BACKUP_DIR$ = CHDIR()
@@ -89,7 +90,7 @@ WHILE #TRUE
    IF FIND_BY_LIST("@EXT_TXT",ENAME$) THEN
     'テキストファイルの場合
     CX% = LEN(FNAME$) + 3
-    CY% = MIN(37,CURSOR%-OFFSET%+2)
+    CY% = MIN(37,CURSOR%-OFFSET%+4)
     DRAW_WINDOW CX%, CY%, 10, 6
     LOCATE CX%, CY%
     PRINT "読み込み先を選択:"
@@ -139,6 +140,66 @@ WHILE #TRUE
    ENDIF
   ENDIF
  ENDIF
+ 'A:ステージ領域へファイルを追加(git add -A)
+ IF C$ == "A" THEN
+  IF CHKGIT() THEN
+   DMP$ = SYSTEM$("sudo git add -A")
+   DRAW_WINDOW 25, 11, 29, 1
+   LOCATE 25, 11:PRINT "編集された全てのファイルをステージング領域に追加しました。"
+   C$ = WAIT_INKEY$()
+   C$ = ""
+  ELSE
+   DRAW_WINDOW 25, 11, 30, 4
+   LOCATE 25, 11:PRINT "gitコマンドがお使いの環境にインストールされていません。"
+   LOCATE 25, 12:PRINT "gitは以下のコマンドでインストールすることができます:"
+   LOCATE 28, 13:PRINT "sudo apt-get install git"
+   LOCATE 25, 14:PRINT "ただし、使用には初期設定も必要です。"
+   C$ = WAIT_INKEY$()
+   C$ = ""
+  ENDIF
+  DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
+ ENDIF
+ 'O:gitへコミットする(git commit)
+ IF C$ == "O" THEN
+  IF CHKGIT() THEN
+   DRAW_WINDOW 15, 11, 50, 2
+   LOCATE 15, 11:PRINT "コミットメッセージを入力:"
+   LOCATE 15, 12:LINPUT CONTENT$
+   DMP$ = SYSTEM$("sudo git commit -m "+CHR$(34)+CONTENT$+CHR$(34))
+   DRAW_WINDOW 34, 16, 12, 1
+   LOCATE 25, 16:PRINT "コミットが完了しました。"
+   C$ = WAIT_INKEY$()
+   C$ = ""
+  ELSE
+   DRAW_WINDOW 25, 11, 30, 4
+   LOCATE 25, 11:PRINT "gitコマンドがお使いの環境にインストールされていません。"
+   LOCATE 25, 12:PRINT "gitは以下のコマンドでインストールすることができます:"
+   LOCATE 28, 13:PRINT "sudo apt-get install git"
+   LOCATE 25, 14:PRINT "ただし、使用には初期設定も必要です。"
+   C$ = WAIT_INKEY$()
+   C$ = ""
+  ENDIF
+  DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
+ ENDIF
+ 'P:リモートリポジトリへ送信(git push)
+ IF C$ == "P" THEN
+  IF CHKGIT() THEN
+   DMP$ = SYSTEM$("sudo git push -u")
+   DRAW_WINDOW 27, 11, 25, 1
+   LOCATE 25, 11:PRINT "ローカルの作業をリモートリポジトリに反映しました。"
+   C$ = WAIT_INKEY$()
+   C$ = ""
+  ELSE
+   DRAW_WINDOW 25, 11, 30, 4
+   LOCATE 25, 11:PRINT "gitコマンドがお使いの環境にインストールされていません。"
+   LOCATE 25, 12:PRINT "gitは以下のコマンドでインストールすることができます:"
+   LOCATE 28, 13:PRINT "sudo apt-get install git"
+   LOCATE 25, 14:PRINT "ただし、使用には初期設定も必要です。"
+   C$ = WAIT_INKEY$()
+   C$ = ""
+  ENDIF
+  DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
+ ENDIF
  'H:ヘルプ → その他の操作方法について表示
  IF C$ == "H" THEN
   DRAW_WINDOW 20, 5, 40, 30
@@ -176,7 +237,7 @@ DATA "C  :コピー"
 DATA "X  :切り取り"
 DATA "V  :貼り付け"
 DATA ""
-DATA "A  :ステージ領域へファイルを追加(git add)"
+DATA "A  :ステージ領域へファイルを追加(git add -A)"
 DATA "O  :gitへコミットする(git commit)"
 DATA "P  :リモートリポジトリへ送信(git push)"
 DATA ""
@@ -219,24 +280,30 @@ DEF DRAW_FILELIST LIST$, CURSOR%, OFFSET%
  NEXT
  LOCATE 0,  1:PRINT "" + ""*78 + "";
  LOCATE 0, 44:PRINT "" + ""*78 + "";
+ '現在のパスを表示するエリアを追加
+ LOCATE 1, 2:PRINT " "*78
+ LOCATE 0, 3:PRINT "" + ""*78 + ""
+ LOCATE 1, 2:PRINT CLIP_TEXT$(CHDIR(),78)
  'プレビューエリアを準備
  VAR FL_WIDTH% = 40
- FOR I% = 2 TO 43
+ FOR I% = 4 TO 43
   LOCATE FL_WIDTH%, I%
   PRINT "";
  NEXT
- LOCATE FL_WIDTH%,  1:PRINT "┬";
+ LOCATE FL_WIDTH%,  3:PRINT "┬";
  LOCATE FL_WIDTH%, 44:PRINT "┴";
  'リストの文字列を順に描画
- FOR I% = 0 TO MIN(41,LEN(LIST$)-OFFSET%-1)
+ FOR I% = 0 TO MIN(38,LEN(LIST$)-OFFSET%-1)
+  'カーソル位置の背景
   IF I%+OFFSET% == CURSOR% THEN
    COLOR #WHITE, &HFF600000
-   LOCATE 1, I%+2
+   LOCATE 1, I%+4
    PRINT " "*(FL_WIDTH%-1)
   ELSE
    COLOR #WHITE, 0
   ENDIF
-  LOCATE 1, I%+2
+  '描画
+  LOCATE 1, I%+4
   PRINT CLIP_TEXT$(LIST$[I%+OFFSET%],FL_WIDTH%-2)
  NEXT
 END
@@ -364,6 +431,13 @@ END
 DEF EXTNAME$(PATH$)
  VAR DMP$ = SYSTEM$("SBRKEY_fpath="+CHR$(34)+PATH$+CHR$(34)+" && SBRKEY_fext="+CHR$(34)+"${SBRKEY_fpath##*.}"+CHR$(34)+" && echo $SBRKEY_fext")
  RETURN LEFT$(DMP$,LEN(DMP$)-1)
+END
+
+'--- gitがインストールされているか確認する関数
+DEF CHKGIT()
+ VAR DMP$ = SYSTEM$("sudo git")
+ IF RESULT == 127 THEN RETURN #FALSE
+ RETURN #TRUE
 END
 
 '--- 文字列の小文字を大文字に置換する関数
