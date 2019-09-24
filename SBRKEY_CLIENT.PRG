@@ -78,13 +78,12 @@ WHILE #TRUE
    'ディレクトリの場合
    DNAME$ = MID$(FLIST$[CURSOR%],1,LEN(FLIST$[CURSOR%])-2)
    CHDIR DNAME$
-   UPDATE_FILELIST FLIST$, "NAME"
+   RELOAD_FILELIST FLIST$, "NAME"
    DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
   ELSE
    FNAME$ = FLIST$[CURSOR%]
    ENAME$ = UPL$(EXTNAME$(FNAME$))
-   PRINT FNAME$, ENAME$
-   IF ENAME$ == "TXT" || ENAME$ == "LOG" || ENAME$ == "PRG" || ENAME$ == "DATA" || ENAME$ == "SH" THEN
+   IF FIND_BY_LIST("@EXT_TXT",ENAME$) THEN
     'テキストファイルの場合
     CX% = LEN(FNAME$) + 3
     CY% = MIN(37,CURSOR%-OFFSET%+2)
@@ -96,8 +95,42 @@ WHILE #TRUE
     LOCATE CX%+1, CY%+3:PRINT "PRG2";
     LOCATE CX%+1, CY%+4:PRINT "PRG3";
     LOCATE CX%+1, CY%+5:PRINT "クリップボード";
-    C$ = WAIT_INKEY$()
     C$ = ""
+    J% = 0
+    WHILE #TRUE
+     'キー取得
+     C$ = UPL$(INKEY$())
+     '上下
+     IF C$ == CHR$(30) && J% > 0 THEN
+      DEC J%
+      FOR I% = 0 TO 4
+       LOCATE CX%, CY%+I%:PRINT " ";
+      NEXT
+      LOCATE CX%, CY%+J%:PRINT "→";
+     ELSEIF C$ == CHR$(31) && J% < 4 THEN
+      INC J%
+      FOR I% = 0 TO 4
+       LOCATE CX%, CY%+I%:PRINT " ";
+      NEXT
+      LOCATE CX%, CY%+J%:PRINT "→";
+     ENDIF
+     '決定
+     IF C$ == CHR$(13) THEN
+      IF J% < 4  THEN LOAD "PRG"+STR$(J%)+":"+FNAME$
+      IF J% == 4 THEN CLIPBOARD LOAD("TXT:"+FNAME$)
+      VSYNC
+      BREAK
+     ENDIF
+     'キャンセル
+     IF C$ == "Q" || C$ == CHR$(27) THEN
+      VSYNC
+      BREAK
+     ENDIF
+     '時間待ち
+     VSYNC
+    WEND
+    C$ = ""
+    J% = 0
     DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
    ENDIF
   ENDIF
@@ -268,11 +301,36 @@ END
 
 '--- 文字列配列内で指定された要素を検索する(返り値は添え字)
 DEF FIND(ARRAY$,TARGET$)
- VAR I%
+ VAR I%, RES% = -1
  FOR I% = 0 TO LEN(ARRAY$)-1
-  IF ARRAY$[I%] == TARGET$ THEN BREAK
+  IF ARRAY$[I%] == TARGET$ THEN
+   RES% = I%
+   BREAK
+  ENDIF
  NEXT
- RETURN I%
+ RETURN RES%
+END
+
+'--- 文字列配列内で指定された要素をDATAで定義されたリストから検索する
+DEF FIND_BY_LIST(LABEL$,TARGET$)
+ VAR ELEMENT$
+ DIM ELEMENTS$[0]
+ RESTORE LABEL$
+ READ ELEMENT$
+ WHILE ELEMENT$ != ""
+  PUSH ELEMENTS$, ELEMENT$
+  READ ELEMENT$
+ WEND
+ RETURN FIND(ELEMENTS$,TARGET$)
+ @EXT_TXT
+ DATA "PRG"
+ DATA "DATA"
+ DATA "TXT"
+ DATA "LOG"
+ DATA "SH"
+ DATA "GITIGNORE"
+ DATA "LICENSE"
+ DATA ""
 END
 
 '--- キー入力を同期的に取得する
@@ -300,9 +358,7 @@ END
 
 '--- ファイルパスから拡張子だけを抜き出す関数
 DEF EXTNAME$(PATH$)
- VAR DMP$ = SYSTEM$("SBRKEY_fpath="+CHR$(34)+PATH$+CHR$(34))
- DMP$     = SYSTEM$("SBRKEY_fext="+CHR$(34)+"${SBRKEY_fpath##*.}"+CHR$(34))
- DMP$     = SYSTEM$("echo $SBRKEY_fext")
+ VAR DMP$ = SYSTEM$("SBRKEY_fpath="+CHR$(34)+PATH$+CHR$(34)+" && SBRKEY_fext="+CHR$(34)+"${SBRKEY_fpath##*.}"+CHR$(34)+" && echo $SBRKEY_fext")
  RETURN LEFT$(DMP$,LEN(DMP$)-1)
 END
 
