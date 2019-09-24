@@ -237,17 +237,18 @@ WHILE #TRUE
    CMODE% = (J% == 0)
   ELSEIF J% == 2 && LEN(FPATH$) > 0 THEN
    '貼り付け
+   VAR WS$  = "/boot/SMILEBOOM/SMILEBASIC-R/workspace"
    FNAME$   = FPATH$[0]
    CONTENT$ = ""
    FOR I% = 0 TO LEN(FPATH$)-1
-    CONTENT$ = CONTENT$ + "/boot/SMILEBOOM/SMILEBASIC-R/workspace" + DPATH$ + "/" + FPATH$[I%] + " "
+    CONTENT$ = CONTENT$ + WS$ + DPATH$ + "/" + FPATH$[I%] + " "
    NEXT
    DMP$ = CHDIR()
    IF DMP$ == "/" THEN DMP$ = ""
    IF CMODE% THEN
-    DMP$ = SYSTEM$("sudo cp -f "+CONTENT$+"/boot/SMILEBOOM/SMILEBASIC-R/workspace"+DMP$+"/")
+    DMP$ = SYSTEM$("sudo cp -f "+CONTENT$+WS$+DMP$+"/")
    ELSE
-    DMP$ = SYSTEM$("sudo mv -f "+CONTENT$+"/boot/SMILEBOOM/SMILEBASIC-R/workspace"+DMP$+"/")
+    DMP$ = SYSTEM$("sudo mv -f "+CONTENT$+WS$+DMP$+"/")
     WHILE LEN(FPATH$) > 0
      DMP$ = POP(FPATH$)
     WEND
