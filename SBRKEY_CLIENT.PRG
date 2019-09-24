@@ -29,7 +29,7 @@ IF CHDIR() == "/" THEN CHDIR "/PROJECT"
 
 '--- 初期化
 ACLS
-XSCREEN 640, 480
+XSCREEN 640, 360
 COLOR #WHITE, 0
 
 
@@ -74,7 +74,7 @@ WHILE #TRUE
  ENDIF
  'H:ヘルプ → その他の操作方法について表示
  IF C$ == "H" THEN
-  DRAW_WINDOW 20, 15, 40, 30
+  DRAW_WINDOW 20, 5, 40, 30
   RESTORE @TEXT_HELP
   I% = 0
   READ CONTENT$
@@ -146,22 +146,22 @@ DEF DRAW_FILELIST LIST$, CURSOR%, OFFSET%
  'まずは表示エリアをリフレッシュ
  VAR I%
  COLOR #WHITE, 0
- FOR I% = 1 TO 59
+ FOR I% = 1 TO 44
   LOCATE 0, I%
   PRINT "" + " "*78 + "";
  NEXT
  LOCATE 0,  1:PRINT "" + ""*78 + "";
- LOCATE 0, 59:PRINT "" + ""*78 + "";
+ LOCATE 0, 44:PRINT "" + ""*78 + "";
  'プレビューエリアを準備
  VAR FL_WIDTH% = 40
- FOR I% = 2 TO 58
+ FOR I% = 2 TO 43
   LOCATE FL_WIDTH%, I%
   PRINT "";
  NEXT
  LOCATE FL_WIDTH%,  1:PRINT "┬";
- LOCATE FL_WIDTH%, 59:PRINT "┴";
+ LOCATE FL_WIDTH%, 44:PRINT "┴";
  'リストの文字列を順に描画
- FOR I% = 0 TO MIN(56,LEN(LIST$)-OFFSET%-1)
+ FOR I% = 0 TO MIN(41,LEN(LIST$)-OFFSET%-1)
   IF I%+OFFSET% == CURSOR% THEN
    COLOR #WHITE, &HFF600000
    LOCATE 1, I%+2
