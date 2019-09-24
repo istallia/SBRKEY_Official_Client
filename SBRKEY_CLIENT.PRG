@@ -16,8 +16,8 @@ OPTION STRICT
 
 '--- 汎用変数
 VAR TITLE$ = "SBRKEY OFFICIAL CLIENT v0.1"
-VAR I%, J%
-VAR FNAME$, DNAME$, CONTENT$
+VAR I%, J%, CX%, CY%
+VAR FNAME$, DNAME$, ENAME$, CONTENT$
 
 '--- 実行スロットの確認
 VAR BACKUP_DIR$ = CHDIR()
@@ -72,6 +72,36 @@ WHILE #TRUE
   INC CURSOR%
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
  ENDIF
+ 'Enterでディレクトリを移動したりファイルを読み込んだりする
+ IF C$ == CHR$(13) THEN
+  IF RIGHT$(FLIST$[CURSOR%],1) == "]" THEN
+   'ディレクトリの場合
+   DNAME$ = MID$(FLIST$[CURSOR%],1,LEN(FLIST$[CURSOR%])-2)
+   CHDIR DNAME$
+   UPDATE_FILELIST FLIST$, "NAME"
+   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
+  ELSE
+   FNAME$ = FLIST$[CURSOR%]
+   ENAME$ = UPL$(EXTNAME$(FNAME$))
+   PRINT FNAME$, ENAME$
+   IF ENAME$ == "TXT" || ENAME$ == "LOG" || ENAME$ == "PRG" || ENAME$ == "DATA" || ENAME$ == "SH" THEN
+    'テキストファイルの場合
+    CX% = LEN(FNAME$) + 3
+    CY% = MIN(37,CURSOR%-OFFSET%+2)
+    DRAW_WINDOW CX%, CY%, 10, 6
+    LOCATE CX%, CY%
+    PRINT "読み込み先を選択:"
+    LOCATE CX%+1, CY%+1:PRINT "PRG0";
+    LOCATE CX%+1, CY%+2:PRINT "PRG1";
+    LOCATE CX%+1, CY%+3:PRINT "PRG2";
+    LOCATE CX%+1, CY%+4:PRINT "PRG3";
+    LOCATE CX%+1, CY%+5:PRINT "クリップボード";
+    C$ = WAIT_INKEY$()
+    C$ = ""
+    DRAW_FILELIST FLIST$, CURSOR%, OFFSET%
+   ENDIF
+  ENDIF
+ ENDIF
  'H:ヘルプ → その他の操作方法について表示
  IF C$ == "H" THEN
   DRAW_WINDOW 20, 5, 40, 30
@@ -79,7 +109,7 @@ WHILE #TRUE
   I% = 0
   READ CONTENT$
   WHILE CONTENT$ != "END"
-   LOCATE 21, 16+I%
+   LOCATE 21, 6+I%
    PRINT CONTENT$
    READ CONTENT$
    INC I%
@@ -264,8 +294,16 @@ END
 
 '--- ファイルパスからディレクトリ部分を抜き出す関数
 DEF DIRNAME$(PATH$)
-VAR DIR$ = SYSTEM$("dirname "+PATH$)
+ VAR DIR$ = SYSTEM$("dirname "+PATH$)
  RETURN LEFT$(DIR$,LEN(DIR$)-1)
+END
+
+'--- ファイルパスから拡張子だけを抜き出す関数
+DEF EXTNAME$(PATH$)
+ VAR DMP$ = SYSTEM$("SBRKEY_fpath="+CHR$(34)+PATH$+CHR$(34))
+ DMP$     = SYSTEM$("SBRKEY_fext="+CHR$(34)+"${SBRKEY_fpath##*.}"+CHR$(34))
+ DMP$     = SYSTEM$("echo $SBRKEY_fext")
+ RETURN LEFT$(DMP$,LEN(DMP$)-1)
 END
 
 '--- 文字列の小文字を大文字に置換する関数
