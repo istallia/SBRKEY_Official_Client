@@ -98,7 +98,7 @@ WHILE #TRUE
    ENAME$ = UPL$(EXTNAME$(FNAME$))
    IF CHKEXT("TXT",ENAME$) > -1 THEN
     'テキストファイルの場合
-    CX% = LEN(FNAME$) + 4
+    CX% = MIN(41,LEN(FNAME$)) + 4
     CY% = MIN(37,CURSOR%-OFFSET%+4)
     DRAW_WINDOW CX%, CY%, 10, 6
     LOCATE CX%, CY%
@@ -127,14 +127,9 @@ WHILE #TRUE
    WHILE LEN(SELECT$) > 0
     DMP$ = POP(SELECT$)
    WEND
-  ELSEIF SPATH$ != CHDIR() THEN
-   WHILE LEN(SELECT$) > 0
-    DMP$ = POP(SELECT$)
-   WEND
-   SPATH$ = CHDIR()
-   PUSH SELECT$, FLIST$[CURSOR%]
   ELSE
    SPATH$ = CHDIR()
+   IF SPATH$ == "/" THEN SPATH$ == ""
    PUSH SELECT$, FLIST$[CURSOR%]
   ENDIF
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
@@ -203,7 +198,7 @@ WHILE #TRUE
  ENDIF
  'SPACE:ファイルメニュー → ファイルやディレクトリに関する操作を選択肢から選んで実行
  IF C$ == " " THEN
-  CX% = LEN(FLIST$[CURSOR%]) + 4
+  CX% = MIN(41,LEN(FLIST$[CURSOR%])) + 4
   CY% = MIN(37,CURSOR%-OFFSET%+4)
   DRAW_WINDOW CX%, CY%, 11, 7
   LOCATE CX%+1, CY%  :PRINT "コピー";
@@ -214,6 +209,36 @@ WHILE #TRUE
   LOCATE CX%+1, CY%+5:PRINT "ファイルパスのコピー";
   LOCATE CX%+1, CY%+6:PRINT "圧縮／解凍";
   J% = CHOOSE(CX%,CY%,7)
+  IF J% == 0 || J% == 1 THEN
+   'コピー & 切り取り
+   IF LEN(SELECT$) > 0 THEN
+    DPATH$ = SPATH$ + ""
+    WHILE LEN(FPATH$) > 0
+     DMP$ = POP(FPATH$)
+    WEND
+    COPY FPATH$, SELECT$
+    WHILE LEN(SELECT$) > 0
+     DMP$ = POP(SELECT$)
+    WEND
+   ELSE
+    DPATH$ = CHDIR()
+    IF DPATH$ == "/" THEN DPATH$ = ""
+    WHILE LEN(FPATH$) > 0
+     DMP$ = POP(FPATH$)
+    WEND
+    PUSH FPATH$, FLIST$[CURSOR%]
+   ENDIF
+   CMODE% = (J% == 0)
+  ELSEIF J% == 5 THEN
+   'ファイルパスのコピー
+   DNAME$ = CHDIR() + "/" + FLIST$[CURSOR%]
+   IF LEFT$(DNAME$,2) == "//" THEN DNAME$ = RIGHT$(DNAME$,LEN(DNAME$)-1)
+   CLIPBOARD DNAME$
+   DRAW_WINDOW CX%+1, CY%+7, 23, 1
+   LOCATE CX%+1, CY%+7:PRINT "ファイルパスをクリップボードにコピーしました。";
+   C$ = WAIT_INKEY$()
+  ENDIF
+  C$ = ""
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
  ENDIF
  'H:ヘルプ → その他の操作方法について表示
