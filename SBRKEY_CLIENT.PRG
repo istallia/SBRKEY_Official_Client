@@ -257,7 +257,9 @@ WHILE #TRUE
    IF J% > -1 THEN CURSOR% = J%
   ELSEIF J% == 6 THEN
    'ファイルパスのコピー
-   DNAME$ = CHDIR() + "/" + FLIST$[CURSOR%]
+   FNAME$ = FLIST$[CURSOR%]
+   IF RIGHT$(FNAME$,1) == "]" THEN FNAME$ = MID$(FNAME$,1,LEN(FNAME$)-2)
+   DNAME$ = CHDIR() + "/" + FNAME$
    IF LEFT$(DNAME$,2) == "//" THEN DNAME$ = RIGHT$(DNAME$,LEN(DNAME$)-1)
    CLIPBOARD DNAME$
    DRAW_WINDOW CX%+1, CY%+7, 23, 1
