@@ -129,7 +129,7 @@ WHILE #TRUE
    WEND
   ELSE
    SPATH$ = CHDIR()
-   IF SPATH$ == "/" THEN SPATH$ == ""
+   IF SPATH$ == "/" THEN SPATH$ = ""
    PUSH SELECT$, FLIST$[CURSOR%]
   ENDIF
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
@@ -200,15 +200,16 @@ WHILE #TRUE
  IF C$ == " " THEN
   CX% = MIN(41,LEN(FLIST$[CURSOR%])) + 4
   CY% = MIN(37,CURSOR%-OFFSET%+4)
-  DRAW_WINDOW CX%, CY%, 11, 7
+  DRAW_WINDOW CX%, CY%, 11, 8
   LOCATE CX%+1, CY%  :PRINT "コピー";
   LOCATE CX%+1, CY%+1:PRINT "切り取り";
   LOCATE CX%+1, CY%+2:PRINT "貼り付け";
   LOCATE CX%+1, CY%+3:PRINT "名前の変更";
-  LOCATE CX%+1, CY%+4:PRINT "git add";
-  LOCATE CX%+1, CY%+5:PRINT "ファイルパスのコピー";
-  LOCATE CX%+1, CY%+6:PRINT "圧縮／解凍";
-  J% = CHOOSE(CX%,CY%,7)
+  LOCATE CX%+1, CY%+4:PRINT "削除";
+  LOCATE CX%+1, CY%+5:PRINT "git add";
+  LOCATE CX%+1, CY%+6:PRINT "ファイルパスのコピー";
+  LOCATE CX%+1, CY%+7:PRINT "圧縮／解凍";
+  J% = CHOOSE(CX%,CY%,8)
   IF J% == 0 || J% == 1 THEN
    'コピー & 切り取り
    IF LEN(SELECT$) > 0 THEN
@@ -229,7 +230,31 @@ WHILE #TRUE
     PUSH FPATH$, FLIST$[CURSOR%]
    ENDIF
    CMODE% = (J% == 0)
-  ELSEIF J% == 5 THEN
+  ELSEIF J% == 2 && LEN(FPATH$) > 0 THEN
+   '貼り付け
+   FNAME$   = FPATH$[0]
+   CONTENT$ = ""
+   FOR I% = 0 TO LEN(FPATH$)-1
+    CONTENT$ = CONTENT$ + "/boot/SMILEBOOM/SMILEBASIC-R/workspace" + DPATH$ + "/" + FPATH$[I%] + " "
+   NEXT
+   DMP$ = CHDIR()
+   IF DMP$ == "/" THEN DMP$ = ""
+   IF CMODE% THEN
+    DMP$ = SYSTEM$("sudo cp -f "+CONTENT$+"/boot/SMILEBOOM/SMILEBASIC-R/workspace"+DMP$+"/")
+   ELSE
+    DMP$ = SYSTEM$("sudo mv -f "+CONTENT$+"/boot/SMILEBOOM/SMILEBASIC-R/workspace"+DMP$+"/")
+    WHILE LEN(FPATH$) > 0
+     DMP$ = POP(FPATH$)
+    WEND
+    DPATH$ = ""
+    CMODE% = #TRUE
+   ENDIF
+   RELOAD_FILELIST FLIST$, "NAME"
+   J% = FIND(FLIST$,FNAME$)
+   IF J% > -1 THEN CURSOR% = J%
+   J% = FIND(FLIST$,"["+FNAME$+"]")
+   IF J% > -1 THEN CURSOR% = J%
+  ELSEIF J% == 6 THEN
    'ファイルパスのコピー
    DNAME$ = CHDIR() + "/" + FLIST$[CURSOR%]
    IF LEFT$(DNAME$,2) == "//" THEN DNAME$ = RIGHT$(DNAME$,LEN(DNAME$)-1)
