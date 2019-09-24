@@ -95,6 +95,7 @@ WHILE #TRUE
     LOCATE CX%+1, CY%+3:PRINT "PRG2";
     LOCATE CX%+1, CY%+4:PRINT "PRG3";
     LOCATE CX%+1, CY%+5:PRINT "クリップボード";
+    LOCATE CX%  , CY%+1:PRINT "→";
     C$ = ""
     J% = 0
     WHILE #TRUE
@@ -104,15 +105,15 @@ WHILE #TRUE
      IF C$ == CHR$(30) && J% > 0 THEN
       DEC J%
       FOR I% = 0 TO 4
-       LOCATE CX%, CY%+I%:PRINT " ";
+       LOCATE CX%, CY%+I%+1:PRINT " ";
       NEXT
-      LOCATE CX%, CY%+J%:PRINT "→";
+      LOCATE CX%, CY%+J%+1:PRINT "→";
      ELSEIF C$ == CHR$(31) && J% < 4 THEN
       INC J%
       FOR I% = 0 TO 4
-       LOCATE CX%, CY%+I%:PRINT " ";
+       LOCATE CX%, CY%+I%+1:PRINT " ";
       NEXT
-      LOCATE CX%, CY%+J%:PRINT "→";
+      LOCATE CX%, CY%+J%+1:PRINT "→";
      ENDIF
      '決定
      IF C$ == CHR$(13) THEN
