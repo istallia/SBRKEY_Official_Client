@@ -26,6 +26,10 @@ VAR SPATH$, DPATH$
 DIM FPATH$[0]
 DIM CMODE% = #TRUE
 
+'--- ファイルプレビュー用の変数
+DIM PV_TEXT$[0]
+VAR PV_COUNT% = 0
+
 '--- 実行スロットの確認
 VAR BACKUP_DIR$ = CHDIR()
 VAR SLOT%       = 0
@@ -72,6 +76,7 @@ WHILE #TRUE
  'キー入力を取得
  VAR C$ = INKEY$()
  C$     = UPL$(C$)
+ IF LEN(C$) > 0 THEN PV_COUNT% = 0
  '上下キーでカーソルを移動
  IF C$ == CHR$(30) && CURSOR% > 0 THEN
   DEC CURSOR%
@@ -395,6 +400,35 @@ WHILE #TRUE
   CHDIR BACKUP_DIR$
   BREAK
  ENDIF
+ 'ファイルプレビューの表示
+ IF PV_COUNT% == 45 THEN
+  ENAME$ = UPL$(EXTNAME$(FLIST$[CURSOR%]))
+  IF CHKEXT("TXT",ENAME$) > -1 THEN
+   'テキストファイル
+   CONTENT$ = LOAD("TXT:"+FLIST$[CURSOR%])
+   J%       = 0
+   FOR I% = 0 TO 39
+    FNAME$ = SHIFT(CONTENT$)
+    COLOR #WHITE, 0
+    WHILE FNAME$ != CHR$(10) && J% < 38 && LEN(CONTENT$) > 0
+     LOCATE J%+41, I%+4:PRINT FNAME$;
+     FNAME$ = SHIFT(CONTENT$)
+     INC J%
+    WEND
+    WHILE FNAME$ != CHR$(10) && LEN(CONTENT$) > 0
+     FNAME$ = SHIFT(CONTENT$)
+    WEND
+    J% = 0
+    IF LEN(CONTENT$) < 1 THEN BREAK
+   NEXT
+  ELSE
+   'その他、プレビュー不可能なファイル
+   COLOR #WHITE, 0
+   LOCATE 41, 4:PRINT "このファイルはプレビュー可能なファイルリストにありません。";
+  ENDIF
+ ENDIF
+ INC PV_COUNT%
+ PV_COUNT% = MIN(1023,PV_COUNT%)
  '時間待ち
  VSYNC
 WEND
