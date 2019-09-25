@@ -123,7 +123,7 @@ WHILE #TRUE
   ENDIF
  ENDIF
  'S:複数選択
- IF C$ == "S" THEN
+ IF C$ == "S" && FLIST$[CURSOR%] != "[..]" THEN
   IF FIND(SELECT$,FLIST$[CURSOR%]) > -1 THEN
    WHILE LEN(SELECT$) > 0
     DMP$ = POP(SELECT$)
@@ -200,7 +200,7 @@ WHILE #TRUE
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
  ENDIF
  'SPACE:ファイルメニュー → ファイルやディレクトリに関する操作を選択肢から選んで実行
- IF C$ == " " THEN
+ IF C$ == " " && FLIST$[CURSOR%] != "[..]" THEN
   CX% = MIN(41,LEN(FLIST$[CURSOR%])) + 4
   CY% = MIN(37,CURSOR%-OFFSET%+4)
   DRAW_WINDOW CX%, CY%, 11, 8
@@ -255,6 +255,19 @@ WHILE #TRUE
     DPATH$ = ""
     CMODE% = #TRUE
    ENDIF
+   RELOAD_FILELIST FLIST$, "NAME"
+   J% = FIND(FLIST$,FNAME$)
+   IF J% > -1 THEN CURSOR% = J%
+   J% = FIND(FLIST$,"["+FNAME$+"]")
+   IF J% > -1 THEN CURSOR% = J%
+  ELSEIF J% == 3 THEN
+   '名前の変更
+   FNAME$ = FLIST$[CURSOR%]
+   IF RIGHT$(FNAME$,1) == "]" THEN FNAME$ = MID$(FNAME$,1,LEN(FNAME$)-2)
+   DRAW_WINDOW 10, 16, 60, 2
+   LOCATE 10, 16:PRINT "ファイル・ディレクトリの新しい名前を入力してください:";
+   LOCATE 10, 17:LINPUT DNAME$
+   IF LEN(DNAME$) > 0 THEN RENAME FNAME$, DNAME$
    RELOAD_FILELIST FLIST$, "NAME"
    J% = FIND(FLIST$,FNAME$)
    IF J% > -1 THEN CURSOR% = J%
