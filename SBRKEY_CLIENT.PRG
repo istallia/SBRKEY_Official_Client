@@ -281,6 +281,33 @@ WHILE #TRUE
    ENDIF
    RELOAD_FILELIST FLIST$, "NAME"
    IF CURSOR% > LEN(FLIST$)-1 THEN CURSOR% = LEN(FLIST$) - 1
+  ELSEIF J% == 5 THEN
+   'git add
+   IF CHKGIT() THEN
+    IF LEN(SELECT$) == 0 THEN
+     DMP$ = SYSTEM$("sudo git add -A")
+     DRAW_WINDOW 25, 11, 29, 1
+     LOCATE 25, 11:PRINT "編集された全てのファイルをステージング領域に追加しました。"
+    ELSE
+     CONTENT$ = ""
+     FOR I% = 0 TO LEN(SELECT$)-1
+      CONTENT$ = CONTENT$ + " " + SELECT$[I%]
+     NEXT
+     DMP$ = SYSTEM$("sudo git add"+CONTENT$)
+     DRAW_WINDOW 25, 11, 29+FLOOR(LOG(LEN(SELECT$),10)), 1
+     LOCATE 25, 11:PRINT "選択された"+STR$(LEN(SELECT$))+"つのファイルをステージング領域に追加しました。"
+    ENDIF
+    C$ = WAIT_INKEY$()
+    C$ = ""
+   ELSE
+    DRAW_WINDOW 25, 11, 30, 4
+    LOCATE 25, 11:PRINT "gitコマンドがお使いの環境にインストールされていません。"
+    LOCATE 25, 12:PRINT "gitは以下のコマンドでインストールすることができます:"
+    LOCATE 28, 13:PRINT "sudo apt-get install git"
+    LOCATE 25, 14:PRINT "ただし、使用には初期設定も必要です。"
+    C$ = WAIT_INKEY$()
+    C$ = ""
+   ENDIF
   ELSEIF J% == 6 THEN
    'ファイルパスのコピー
    FNAME$ = FLIST$[CURSOR%]
