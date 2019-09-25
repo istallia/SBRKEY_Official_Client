@@ -28,7 +28,9 @@ DIM CMODE% = #TRUE
 
 '--- ファイルプレビュー用の変数
 DIM PV_TEXT$[0]
-VAR PV_COUNT% = 0
+VAR PV_FNAME$  = ""
+VAR PV_COUNT%  = 0
+VAR PV_BCOUNT% = 0
 
 '--- 実行スロットの確認
 VAR BACKUP_DIR$ = CHDIR()
@@ -141,6 +143,7 @@ WHILE #TRUE
    PUSH SELECT$, FNAME$
   ENDIF
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+  IF PV_BCOUNT% >= 45 THEN PREVIEW FLIST$[CURSOR%]
  ENDIF
  'A:ステージ領域へファイルを追加(git add -A)
  IF C$ == "A" THEN
@@ -160,6 +163,7 @@ WHILE #TRUE
    C$ = ""
   ENDIF
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+  IF PV_BCOUNT% >= 45 THEN PREVIEW FLIST$[CURSOR%]
  ENDIF
  'O:gitへコミットする(git commit)
  IF C$ == "O" THEN
@@ -182,6 +186,7 @@ WHILE #TRUE
    C$ = ""
   ENDIF
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+  IF PV_BCOUNT% >= 45 THEN PREVIEW FLIST$[CURSOR%]
  ENDIF
  'P:リモートリポジトリへ送信(git push)
  IF C$ == "P" THEN
@@ -203,6 +208,7 @@ WHILE #TRUE
    C$ = ""
   ENDIF
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+  IF PV_BCOUNT% >= 45 THEN PREVIEW FLIST$[CURSOR%]
  ENDIF
  'SPACE:ファイルメニュー → ファイルやディレクトリに関する操作を選択肢から選んで実行
  IF C$ == " " && FLIST$[CURSOR%] != "[..]" THEN
@@ -376,6 +382,9 @@ WHILE #TRUE
   ENDIF
   C$ = ""
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+  IF J% == -1 || J% == 3 || J% == 5 || J% == 6 THEN
+   IF PV_BCOUNT% >= 45 THEN PREVIEW FLIST$[CURSOR%]
+  ENDIF
  ENDIF
  'H:ヘルプ → その他の操作方法について表示
  IF C$ == "H" THEN
@@ -392,6 +401,7 @@ WHILE #TRUE
   C$ = WAIT_INKEY$()
   C$ = ""
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+  IF PV_BCOUNT% >= 45 THEN PREVIEW FLIST$[CURSOR%]
  ENDIF
  'Q:終了 → 画面をリフレッシュしてからツールを終了
  IF C$ == "Q" || C$ == CHR$(27) THEN
@@ -402,17 +412,9 @@ WHILE #TRUE
  ENDIF
  'ファイルプレビューの表示
  IF PV_COUNT% == 45 THEN
-  ENAME$ = UPL$(EXTNAME$(FLIST$[CURSOR%]))
-  IF CHKEXT("TXT",ENAME$) > -1 THEN
-   'テキストファイル
-   MAKE_PV_TXT PV_TEXT$, FLIST$[CURSOR%], 38, 40
-   DRAW_PV_TXT PV_TEXT$, 41, 4
-  ELSE
-   'その他、プレビュー不可能なファイル
-   COLOR #WHITE, 0
-   LOCATE 41, 4:PRINT "このファイルはプレビュー可能なファイルリストにありません。";
-  ENDIF
+  PREVIEW FLIST$[CURSOR%]
  ENDIF
+ PV_BCOUNT% = PV_COUNT%
  INC PV_COUNT%
  PV_COUNT% = MIN(1023,PV_COUNT%)
  '時間待ち
@@ -504,6 +506,30 @@ DEF DRAW_FILELIST LIST$, CURSOR%, OFFSET%, SEL$
   LOCATE 2, I%+4
   PRINT CLIP_TEXT$(LIST$[I%+OFFSET%],FL_WIDTH%-2);
  NEXT
+END
+
+'--- ファイル種別を識別して最適なプレビューを提供する命令
+DEF PREVIEW FN$
+ '変数の準備
+ VAR EN$
+ '拡張子ごとに判断してプレビューを作成
+ EN$ = UPL$(EXTNAME$(FN$))
+ IF FN$ != PV_FNAME$ THEN
+  IF CHKEXT("TXT",EN$) > -1 THEN
+   'テキストファイル
+   MAKE_PV_TXT PV_TEXT$, FN$, 38, 40
+  ENDIF
+  PV_FNAME$ = FN$ + ""
+ ENDIF
+ '拡張子ごとに判断して描画
+ IF CHKEXT("TXT",EN$) > -1 THEN
+  'テキストファイル
+  DRAW_PV_TXT PV_TEXT$, 41, 4
+ ELSE
+  'その他、プレビュー不可能なファイル
+  COLOR #WHITE, 0
+  LOCATE 41, 4:PRINT "このファイルはプレビュー可能なファイルリストにありません。";
+ ENDIF
 END
 
 '--- テキストファイルのプレビュー文字列配列を作成する
