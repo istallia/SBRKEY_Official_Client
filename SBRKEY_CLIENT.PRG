@@ -405,22 +405,8 @@ WHILE #TRUE
   ENAME$ = UPL$(EXTNAME$(FLIST$[CURSOR%]))
   IF CHKEXT("TXT",ENAME$) > -1 THEN
    'テキストファイル
-   CONTENT$ = LOAD("TXT:"+FLIST$[CURSOR%])
-   J%       = 0
-   FOR I% = 0 TO 39
-    FNAME$ = SHIFT(CONTENT$)
-    COLOR #WHITE, 0
-    WHILE FNAME$ != CHR$(10) && J% < 38 && LEN(CONTENT$) > 0
-     LOCATE J%+41, I%+4:PRINT FNAME$;
-     FNAME$ = SHIFT(CONTENT$)
-     INC J%
-    WEND
-    WHILE FNAME$ != CHR$(10) && LEN(CONTENT$) > 0
-     FNAME$ = SHIFT(CONTENT$)
-    WEND
-    J% = 0
-    IF LEN(CONTENT$) < 1 THEN BREAK
-   NEXT
+   MAKE_PV_TXT PV_TEXT$, FLIST$[CURSOR%], 38, 40
+   DRAW_PV_TXT PV_TEXT$, 41, 4
   ELSE
    'その他、プレビュー不可能なファイル
    COLOR #WHITE, 0
@@ -517,6 +503,46 @@ DEF DRAW_FILELIST LIST$, CURSOR%, OFFSET%, SEL$
   '描画
   LOCATE 2, I%+4
   PRINT CLIP_TEXT$(LIST$[I%+OFFSET%],FL_WIDTH%-2);
+ NEXT
+END
+
+'--- テキストファイルのプレビュー文字列配列を作成する
+DEF MAKE_PV_TXT RES$, FN$, W%, H%
+ '変数の準備
+ VAR TXT$   = LOAD("TXT:"+FN$)
+ VAR CHAR$  = ""
+ VAR I%, POS%, J% = 0
+ WHILE LEN(RES$) > 0
+  CHAR$ = SHIFT(RES$)
+ WEND
+ '文字列を一文字一文字チェックしてプレビューを作成
+ FOR I% = 0 TO H%-1
+  PUSH RES$, ""
+  CHAR$ = SHIFT(TXT$)
+  WHILE CHAR$ != CHR$(10) && J% < W% && LEN(TXT$) > 0
+   RES$[I%] = RES$[I%] + CHAR$
+   CHAR$ = SHIFT(TXT$)
+   INC J%
+  WEND
+  IF J% >= W% THEN
+   POS% = INSTR(TXT$,CHR$(10))
+   IF POS% < 0 THEN BREAK
+   TXT$ = RIGHT$(TXT$,LEN(TXT$)-POS%-1)
+  ENDIF
+  J% = 0
+  IF LEN(TXT$) < 1 THEN BREAK
+ NEXT
+ RETURN RES$
+END
+
+'--- テキストファイルのプレビューを作成した配列から描画する
+DEF DRAW_PV_TXT ARY$, X%, Y%
+ '変数の用意
+ VAR I%
+ '順に描画
+ COLOR #WHITE, 0
+ FOR I% = 0 TO LEN(ARY$)-1
+  LOCATE X%, Y%+I%:PRINT ARY$[I%];
  NEXT
 END
 
