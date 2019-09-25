@@ -203,7 +203,7 @@ WHILE #TRUE
  IF C$ == " " && FLIST$[CURSOR%] != "[..]" THEN
   CX% = MIN(41,LEN(FLIST$[CURSOR%])) + 4
   CY% = MIN(37,CURSOR%-OFFSET%+4)
-  DRAW_WINDOW CX%, CY%, 11, 8
+  DRAW_WINDOW CX%, CY%, 12, 9
   LOCATE CX%+1, CY%  :PRINT "コピー";
   LOCATE CX%+1, CY%+1:PRINT "切り取り";
   LOCATE CX%+1, CY%+2:PRINT "貼り付け";
@@ -211,8 +211,9 @@ WHILE #TRUE
   LOCATE CX%+1, CY%+4:PRINT "削除";
   LOCATE CX%+1, CY%+5:PRINT "git add";
   LOCATE CX%+1, CY%+6:PRINT "ファイルパスのコピー";
-  LOCATE CX%+1, CY%+7:PRINT "圧縮／解凍";
-  J% = CHOOSE(CX%,CY%,8)
+  LOCATE CX%+1, CY%+7:PRINT "ディレクトリの新規作成";
+  LOCATE CX%+1, CY%+8:PRINT "圧縮／解凍";
+  J% = CHOOSE(CX%,CY%,9)
   IF J% == 0 || J% == 1 THEN
    'コピー & 切り取り
    IF LEN(SELECT$) > 0 THEN
@@ -298,9 +299,11 @@ WHILE #TRUE
    'git add
    IF CHKGIT() THEN
     IF LEN(SELECT$) == 0 THEN
-     DMP$ = SYSTEM$("sudo git add -A")
-     DRAW_WINDOW 25, 11, 29, 1
-     LOCATE 25, 11:PRINT "編集された全てのファイルをステージング領域に追加しました。"
+     FNAME$ = FLIST$[CURSOR%]
+     IF RIGHT$(FNAME$,1) == "]" THEN FNAME$ = MID$(FNAME$,1,LEN(FNAME$)-2)
+     DMP$ = SYSTEM$("sudo git add "+FNAME$)
+     DRAW_WINDOW 39, 11, 21, 1
+     LOCATE 39, 11:PRINT "ファイルをステージング領域に追加しました。"
     ELSE
      CONTENT$ = ""
      FOR I% = 0 TO LEN(SELECT$)-1
@@ -308,7 +311,7 @@ WHILE #TRUE
      NEXT
      DMP$ = SYSTEM$("sudo git add"+CONTENT$)
      DRAW_WINDOW 25, 11, 29+FLOOR(LOG(LEN(SELECT$),10)), 1
-     LOCATE 25, 11:PRINT "選択された"+STR$(LEN(SELECT$))+"つのファイルをステージング領域に追加しました。"
+     LOCATE 25, 11:? "選択された"+STR$(LEN(SELECT$))+"つのファイルをステージング領域に追加しました。"
     ENDIF
     C$ = WAIT_INKEY$()
     C$ = ""
@@ -331,6 +334,15 @@ WHILE #TRUE
    DRAW_WINDOW CX%+1, CY%+7, 23, 1
    LOCATE CX%+1, CY%+7:PRINT "ファイルパスをクリップボードにコピーしました。";
    C$ = WAIT_INKEY$()
+  ELSEIF J% == 7 THEN
+   'ディレクトリの新規作成
+   DRAW_WINDOW 10, 16, 60, 2
+   LOCATE 10, 16:PRINT "新しく作成するディレクトリの名前を入力してください:";
+   LOCATE 10, 17:LINPUT FNAME$
+   MKDIR FNAME$
+   RELOAD_FILELIST FLIST$, "NAME"
+   J% = FIND(FLIST$,"["+FNAME$+"]")
+   IF J% > -1 THEN CURSOR% = J%
   ENDIF
   C$ = ""
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
