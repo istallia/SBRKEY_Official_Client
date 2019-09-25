@@ -16,8 +16,8 @@ OPTION STRICT
 
 '--- 汎用変数
 VAR TITLE$ = "SBRKEY OFFICIAL CLIENT v0.1"
-VAR I%, J%, CX%, CY%
-VAR FNAME$, DNAME$, ENAME$, CONTENT$
+VAR I%, J%, K%, CX%, CY%
+VAR FNAME$, DNAME$, ENAME$, URL$, CONTENT$
 VAR DMP$
 
 '--- クリップボードとコピー用の変数
@@ -387,6 +387,65 @@ WHILE #TRUE
    IF PV_BCOUNT% >= 45 THEN PREVIEW FLIST$[CURSOR%]
   ENDIF
  ENDIF
+ 'D:ダウンロードメニュー → ファイルをダウンロードするためのメニュー
+ IF C$ == "D" THEN
+  DRAW_WINDOW 33, 11, 14, 4
+  LOCATE 33, 11:PRINT "ダウンロード方式を選択:";
+  LOCATE 34, 12:PRINT "SBRKEY(公開キー)";
+  LOCATE 34, 13:PRINT "URL";
+  LOCATE 34, 14:PRINT "GitHubリポジトリ";
+  J% = CHOOSE(33,12,3)
+  IF J% == 0 THEN
+   'SBRKEY(公開キー)
+   DRAW_WINDOW 32, 14, 16, 2
+   LOCATE 32, 14:PRINT "公開キーを入力:";
+   LOCATE 32, 15:PRINT "R-";
+   LOCATE 34, 15:LINPUT DNAME$
+   IF LEN(DNAME$) > 0 THEN
+    URL$ = SBRKEY_KEY2URL$(DNAME$)
+    IF UPL$(LEFT$(URL$,4)) == "HTTP" THEN
+     'DL成功時
+     DL_BY_URL URL$
+     FNAME$ = BASENAME$(URL$)
+     RELOAD_FILELIST FLIST$, "NAME"
+     I% = FIND(FLIST$,FNAME$)
+     IF I% > -1 THEN CURSOR% = I%
+    ELSEIF URL$ == "Not found" THEN
+     DRAW_WINDOW 20, 17, 39, 1
+     LOCATE 20, 17:PRINT "指定された公開キーは存在しないか、URLにアクセスできないため削除されました。";
+     J% = -1
+     C$ = WAIT_INKEY$()
+     C$ = ""
+    ELSE
+     DRAW_WINDOW 30, 17, 20, 1
+     LOCATE 30, 17:PRINT "データベース関連のエラーが発生しました。";
+     J% = -1
+     C$ = WAIT_INKEY$()
+     C$ = ""
+    ENDIF
+   ENDIF
+  ELSEIF J% == 1 THEN
+   'URL
+   DRAW_WINDOW 1, 14, 78, 2
+   LOCATE 1, 14:PRINT "URLを入力:";
+   LOCATE 1, 15:LINPUT URL$
+   IF LEN(URL$) > 7 THEN
+    DL_BY_URL URL$
+    FNAME$ = BASENAME$(URL$)
+    RELOAD_FILELIST FLIST$, "NAME"
+    I% = FIND(FLIST$,FNAME$)
+    IF I% > -1 THEN CURSOR% = I%
+   ENDIF
+  ELSEIF J% == 1 THEN
+   'GitHubリポジトリ
+   DRAW_WINDOW 37, 14, 6, 1
+   LOCATE 37, 14:PRINT "未実装です。";
+   C$ = WAIT_INKEY$()
+   C$ = ""
+  ENDIF
+  DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+  IF PV_BCOUNT% >= 45 && J% < 0 THEN PREVIEW FLIST$[CURSOR%]
+ ENDIF
  'H:ヘルプ → その他の操作方法について表示
  IF C$ == "H" THEN
   DRAW_WINDOW 20, 5, 40, 30
@@ -571,6 +630,24 @@ DEF DRAW_PV_TXT ARY$, X%, Y%
  FOR I% = 0 TO LEN(ARY$)-1
   LOCATE X%, Y%+I%:PRINT ARY$[I%];
  NEXT
+END
+
+
+
+
+'--------------------------------------------
+'SBRKEYのためのダウンロード関連関数                        
+'--------------------------------------------
+
+'--- URLからファイルをダウンロードする命令
+DEF DL_BY_URL URL$
+ VAR DMP$ = SYSTEM$("sudo wget "+URL$)
+END
+
+'--- SBRKEY(公開キー)からURLを取得する関数
+DEF SBRKEY_KEY2URL$(K$)
+ VAR URL$ = "https://textblog.minibird.jp/sbrkey/key2url.php?key="
+ RETURN HTTPGET$(URL$+URLENCODE$(K$))
 END
 
 
