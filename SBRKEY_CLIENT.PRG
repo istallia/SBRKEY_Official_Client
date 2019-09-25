@@ -343,6 +343,31 @@ WHILE #TRUE
    RELOAD_FILELIST FLIST$, "NAME"
    J% = FIND(FLIST$,"["+FNAME$+"]")
    IF J% > -1 THEN CURSOR% = J%
+  ELSEIF J% == 8 THEN
+   '圧縮／解凍
+   IF RIGHT$(UPL$(FLIST$[CURSOR%]),4) == ".ZIP" THEN
+    FNAME$ = SYSTEM$("echo "+FLIST$[CURSOR%]+" | sed 's/\.[^.]*$//'")
+    FNAME$ = LEFT$(FNAME$,LEN(FNAME$)-1)
+    DMP$   = SYSTEM$("sudo unzip "+FNAME$)
+   ELSE
+    IF LEN(SELECT$) == 0 THEN
+     FNAME$ = FLIST$[CURSOR%]
+     IF RIGHT$(FNAME$,1) == "]" THEN FNAME$ = MID$(FNAME$,1,LEN(FNAME$)-2)
+     DMP$   = SYSTEM$("sudo zip -r "+FNAME$+".zip "+FNAME$)
+     FNAME$ = FNAME$ + ".zip"
+    ELSE
+     CONTENT$ = ""
+     FOR I% = 0 TO LEN(SELECT$)-1
+      CONTENT$ = CONTENT$ + " " + SELECT$[I%]
+     NEXT
+     FNAME$ = BASENAME$(CHDIR())
+     IF FNAME$ == "/" THEN FNAME$ = "workspace"
+     DMP$   = SYSTEM$("sudo zip -r "+FNAME$+".zip"+CONTENT$)
+    ENDIF
+   ENDIF
+   RELOAD_FILELIST FLIST$, "NAME"
+   J% = FIND(FLIST$,FNAME$)
+   IF J% > -1 THEN CURSOR% = J%
   ENDIF
   C$ = ""
   DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
