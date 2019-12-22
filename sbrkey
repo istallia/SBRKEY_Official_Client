@@ -1,0 +1,31 @@
+#!/bin/sh
+echo '******************************************'
+echo '*** SBRKEY Console Downloader v0.0.1   ***'
+echo '***                                    ***'
+echo '***                written by istallia ***'
+echo '******************************************'
+echo ''
+
+api='https://textblog.minibird.jp/sbrkey/key2url.php'
+echo -n 'Type your key: '
+read key
+curl "$api?no_inc=false&key=$key" | {
+  read url
+  #echo "$url"
+
+  if [ "$url" = 'No SBRKEY' ]; then
+    echo 'Error: No SBRKEY typed' 1>&2
+    exit 1
+  fi
+  if [ "$url" = 'Not found' ]; then
+    echo 'Error: The SBRKEY is not found' 1>&2
+    exit 1
+  fi
+  if [ "$url" = 'ERROR!' ]; then
+    echo 'Error: Unknown error (probably a problem with DB)' 1>&2
+    exit 1
+  fi
+  wget --trust-server-names "$url"
+}
+
+exit 0
