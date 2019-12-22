@@ -641,7 +641,7 @@ END
 
 '--- URLからファイルをダウンロードする命令
 DEF DL_BY_URL URL$
- VAR DMP$ = SYSTEM$("sudo wget --trust-server-names '"+URL$+"'")
+ VAR DMP$ = SYSTEM$("sudo wget --trust-server-names --content-disposition '"+URL$+"'")
 END
 
 '--- SBRKEY(公開キー)からURLを取得する関数
