@@ -15,7 +15,7 @@ OPTION STRICT
 '--------------------------------------------
 
 '--- 汎用変数
-VAR TITLE$ = "SBRKEY Official Client v0.2"
+VAR TITLE$ = "SBRKEY Official Client v0.2.1"
 VAR I%, J%, K%, CX%, CY%
 VAR FNAME$, DNAME$, ENAME$, URL$, CONTENT$
 VAR DMP$
