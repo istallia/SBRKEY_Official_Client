@@ -15,7 +15,7 @@ OPTION STRICT
 '--------------------------------------------
 
 '--- 汎用変数
-VAR TITLE$ = "SBRKEY Official Client v0.2.1"
+VAR TITLE$ = "SBRKEY Official Client v0.2.2"
 VAR I%, J%, K%, CX%, CY%
 VAR FNAME$, DNAME$, ENAME$, URL$, CONTENT$
 VAR DMP$
@@ -495,6 +495,8 @@ DATA ""
 DATA "A  :ステージ領域へファイルを追加(git add -A)"
 DATA "O  :gitへコミットする(git commit)"
 DATA "P  :リモートリポジトリへ送信(git push)"
+DATA ""
+DATA "/  :任意のコマンドを実行(SYSTEM$命令にそのまま入力)"
 DATA ""
 DATA "いずれかのキーを押してヘルプを閉じます"
 DATA "END"
