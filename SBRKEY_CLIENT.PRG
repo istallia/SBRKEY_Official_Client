@@ -15,7 +15,7 @@ OPTION STRICT
 '--------------------------------------------
 
 '--- 汎用変数
-VAR TITLE$ = "SBRKEY Official Client v0.2.2"
+VAR TITLE$ = "SBRKEY Official Client v0.2.3"
 VAR I%, J%, K%, CX%, CY%
 VAR FNAME$, DNAME$, ENAME$, URL$, CONTENT$
 VAR DMP$
@@ -65,6 +65,15 @@ IF CURSOR% < 0 THEN CURSOR% = 1
 
 '--- タイトルバーとファイルリストの初期描画
 DRAW_FILELIST FLIST$, CURSOR%, OFFSET%, SELECT$
+
+'--- クライアントの更新チェック
+IF CHKFILE("/.SBRKEY_OC_VER-CHECK.TXT") THEN
+ '日付を記録したファイルがある場合は、日付を更新してバージョンチェック
+ CONTENT$ = LOAD("TXT:/.SBRKEY_OC_VER-CHECK.TXT")
+ IF CONTENT$ != DATE$ THEN CHECK_UPDATE
+ELSE
+ IF CONTENT$ != DATE$ THEN CHECK_UPDATE
+ENDIF
 
 '--- メインループ
 WHILE #TRUE
@@ -650,6 +659,11 @@ DEF DRAW_PV_TXT ARY$, X%, Y%
  FOR I% = 0 TO LEN(ARY$)-1
   LOCATE X%, Y%+I%:PRINT ARY$[I%];
  NEXT
+END
+
+'--- このクライアントのアップデートを確認し、あればそれを上書きする
+DEF CHECK_UPDATE
+ 
 END
 
 
