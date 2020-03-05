@@ -11,6 +11,27 @@ SPRITEを多用した現代的なデザインも検討したが、キーボー�
 
 
 
+## 導入
+
+※一般的なPC用語については解説しません。
+
+### PCでダウンロードしたものを転送する方法
+
+1. GitHubの[Releases](releases/latest)から最新版の`SBRKEY_CLIENT.PRG`をダウンロードする。
+1. PiSTARTER入りのMicroSDカードをPCに接続する。
+1. MicroSDの`\SMILEBOOM\SMILEBASIC-R\workspace\PROJECT`にダウンロードしたファイルをコピーする。
+1. MicroSDをRaspberry Piに戻し、起動する。
+1. PiSTARTERの設定で、スマイルボタンのどちらかに`/PROJECT/SBRKEY_CLIENT.PRG`と入力し、設定する。
+1. エディタ画面で指定したスマイルツールを起動すると、クライアントが実行され、利用を開始できる。
+
+### Raspberry Pi上で直接ダウンロードする方法
+
+(準備中。標準のファイラでURLを直接入力することでダウンロードできる)
+
+
+
+
+
 ## 機能について
 
 + [x] SmileBASIC-Rの範囲の全てのディレクトリにアクセス(初期パスは本ツールのある場所かルート)
